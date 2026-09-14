@@ -1,0 +1,14 @@
+.ai/
+.env
+.env.*
+secrets/
+*.pem
+*.key
+node_modules/
+.next/
+coverage/
+dist/
+bin/
+__pycache__/
+*.pyc
+.DS_Store

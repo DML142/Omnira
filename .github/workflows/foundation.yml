@@ -1,0 +1,23 @@
+name: Foundation
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  repository:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - run: make check
+      - name: Install pinned secret scanner
+        env:
+          GOBIN: /tmp/omnira-tools
+        run: |
+          go install github.com/zricethezav/gitleaks/v8@v8.24.3
+          echo /tmp/omnira-tools >> "$GITHUB_PATH"
+      - run: make secrets

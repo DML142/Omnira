@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+python3 scripts/check_repository.py
+sh scripts/scan_secrets.sh --staged
