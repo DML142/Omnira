@@ -10,5 +10,6 @@
 - [ADR-008: Evolve deployment when evidence requires it](008-evolutionary-deployment.md)
 - [ADR-009: Preserve correctness across roadmap phases](009-phase-correctness-gates.md)
 - [ADR-010: Keep initial operational projections with existing owners](010-operational-projections.md)
+- [ADR-011: Extend operational insight and recovery within existing boundaries](011-operational-loop.md)
 
 Supersede decisions with a new ADR; preserve historical rationale.

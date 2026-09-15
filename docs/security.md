@@ -14,7 +14,7 @@ Integrations verifies raw webhook signatures, validates installation state, encr
 credentials at rest and restricts raw payload access. Runtime database roles have
 access only to the owning service schema.
 
-Before any public preview: verify TLS, private internal endpoints, tenant/RBAC tests,
+Before any public sandbox: verify TLS, private internal endpoints, tenant/RBAC tests,
 rate/usage limits, synthetic-only demo data, disabled external delivery/billing,
 secret scanning, dependency review, backup/restore, rollback and explicit retention.
 The later security phase deepens these controls; it does not postpone them.

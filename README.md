@@ -1,11 +1,16 @@
 # Omnira
 
-Omnira is a commerce operations and inventory orchestration platform designed to
-centralize orders, inventory, integrations, and operational workflows across commerce
-channels. It is Shopify-first, with provider-independent domain boundaries.
+Omnira is a commerce operations and inventory orchestration platform designed to help
+growing commerce teams understand, control and recover workflows across orders,
+inventory, stores and integrations. It is Shopify-first with provider-independent domains.
 
-The preview and future commercial product share one implementation. Configuration,
-entitlements, integrations and infrastructure determine the deployment profile.
+Omnira is a commercial product under active development, built to production engineering
+standards for each implemented scope. Its long-term operational loop is
+**Observe → Explain → Simulate → Repair → Verify**.
+
+Omnira Sandbox and Commercial / Production share one implementation. Environment policy,
+entitlements, data, providers and infrastructure constrain Sandbox without weakening
+business correctness. A public Sandbox is planned, not currently available.
 
 ## Status
 
