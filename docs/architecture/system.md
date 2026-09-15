@@ -1,7 +1,7 @@
 # Technical architecture
 
-Status: accepted target architecture. The repository currently contains engineering
-foundations only. Diagrams describe intended behavior, not deployed services.
+Status: accepted target architecture. The repository contains the Phase 00 Gateway/web runtime and local infrastructure
+baseline. Business services remain planned; diagrams describe intended workflows.
 
 ## Architectural invariants
 
