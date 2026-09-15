@@ -304,7 +304,9 @@ Settings
 
 Automations may not exist initially.
 
-Do not display unimplemented major features as fake production UI unless clearly marked as preview.
+Only expose capabilities supported by real data and behavior. Do not add empty
+AI Diagnosis, Time Machine, Self Healing or Repair Center pages; future concepts
+belong in planning until a useful supported workflow exists.
 
 ## Tables are first-class UI
 
@@ -594,3 +596,89 @@ strings. Zustand is for local UI state; TanStack Query owns server state; forms 
 React Hook Form and Zod when those responsibilities first exist. Default to server
 components and isolate interactive client boundaries. Do not install the entire
 frontend dependency list merely to produce an empty shell.
+
+## Future operational loop patterns
+
+These patterns extend Omnira Scarlet; they do not authorize screens in Phase 00.
+Preserve dark-first near-black surfaces, graphite hierarchy, restrained scarlet,
+semantic statuses, personalization, dense readable UI and progressive disclosure.
+Each pattern enters the UI only after its underlying capability is real.
+
+### Timeline and Operations workspace
+
+Operational Timeline is the primary entry point to chronology, cause, related entities,
+failure explanation, restricted developer details, supported repairs and verification.
+Start with concise time/action/outcome entries. Later a failed reservation may show its
+reason, causal order, affected SKU and a supported next action. Offer Explain, causal
+graph and Simulate repair only when their backing behavior exists.
+
+Operations eventually unifies incidents, failed integrations/syncs, DLQ items, drift,
+blocked orders, suggestions, recent repairs and verification failures. Prefer actionable
+lists with scope, age, severity, owner and next step. Make incomplete data, projection
+lag and missing permissions visible; avoid misleading all-clear status. Link back to
+entity timelines instead of duplicating disconnected diagnostic screens.
+
+### Causal graph and explanation panel
+
+Use a bounded directed operation graph with clear reading order, grouping,
+expand/collapse, resource labels, status, timestamps and concise explanations. Provide
+keyboard navigation and a linear accessible equivalent. Avoid animated force-directed
+spaghetti graphs. Show missing parents/evidence as gaps, never invented connecting
+causes. A graph should answer why this operation reached this state.
+
+Explanation panels separate recorded facts, deterministic derivations and optional
+labeled AI-assisted interpretation, with evidence references and observation freshness.
+Lead with merchant language: “Reservation failed because Warsaw has insufficient
+available stock.” Show supported alternatives and actual constraints separately.
+Advanced details may expose event_id, trace_id, correlation_id, causation_id, producer,
+routing key, attempt count and redacted payload/resource references only with appropriate
+access. Infrastructure jargon and raw payloads are not the default experience.
+
+### Simulation results
+
+Clearly label CURRENT STATE, PROPOSED CHANGE, PREDICTED RESULT, RISKS and AFFECTED
+RESOURCES. Include input period, coverage, model/policy version, assumptions, freshness
+and unknowns. Compare only meaningful supported metrics. Use a persistent “Simulation —
+no changes applied” label and textual status, never a success banner implying execution.
+Moving from prediction to execution requires a separate supported repair flow and
+fresh validation; stale results cannot authorize mutations.
+
+### Repair plan and risk confirmation
+
+Follow detected issue → explanation → suggested repair → preview impact → authorization
+and confirmation → execution → verification. Plans show before/after values, preserved
+reservations/invariants, affected resources/orders, source-of-truth evidence and expected
+verification. Make authorization failures and stale plans understandable.
+
+Conceptual risk labels are read_only, safe_retry, bounded_mutation and
+high_impact_mutation, translated into plain language. High-risk confirmation must show
+the exact action, tenant/store scope, quantities, impact and recovery limitations; a
+generic “Are you sure?” dialog is inadequate. Changed scope or evidence requires renewed
+review. Disable repeated submissions while work is in progress, without hiding recovery
+or the durable operation reference.
+
+### Verification and historical state
+
+Show proposed, approved, executing, awaiting_verification, verified and failed as
+conceptual future states, using text/icons as well as color. Distinguish command accepted,
+execution completed and outcome verified. Display verification source, observation time,
+expected/observed values and failure stage. Awaiting verification never looks complete;
+failed verification returns the issue to operator attention.
+
+The historical state viewer offers entity/time context, known quantities and nearby
+transitions with provenance, freshness and retention/coverage gaps. Distinguish recorded
+snapshots, reconstructed values and unknowns. Never imply an exact historical state
+where data is incomplete or globally synchronized when it is not. Historical inspection
+must remain visibly separate from live state and mutation controls.
+
+### Environment and localization
+
+Use Omnira Sandbox externally and Sandbox or Demo Sandbox for the environment badge.
+Show plan separately. Authorized Sandbox System Lab failure/reset controls require
+explicit synthetic scope; Production must reject these paths at the backend.
+
+Every explanation, simulation, repair, verification, incident and risk string uses
+existing translation keys, locale-aware quantities/times and pluralization. Backend
+reason codes plus structured metadata select localized wording; business logic never
+matches translated text or arbitrary English logs. Preserve non-color-only semantics,
+focus handling, reduced motion and theme contrast in every new pattern.

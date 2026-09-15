@@ -5,7 +5,7 @@ baseline. Business services remain planned; diagrams describe intended workflows
 
 ## Architectural invariants
 
-One implementation serves preview and commercial deployments. Organization is the
+One implementation serves Sandbox and Commercial / Production deployments. Organization is the
 tenant boundary. Each service owns its database access. Provider schemas stop at the
 Integrations adapter. Database state and outbox records commit atomically. Delivery
 is at least once; consumers provide idempotent effects. Redis is disposable state.
@@ -65,7 +65,7 @@ The system must use an evolutionary architecture.
 
 The business architecture must be able to remain stable while infrastructure evolves.
 
-Portfolio deployment may begin as:
+Sandbox deployment may begin as:
 
 ```text
 Vercel
@@ -163,7 +163,7 @@ Important reasons:
 
 Each service owns its own data.
 
-Even if the Portfolio deployment uses one physical PostgreSQL cluster, services must have logical data ownership boundaries.
+Even if the Sandbox deployment uses one physical PostgreSQL cluster, services must have logical data ownership boundaries.
 
 Example:
 
@@ -634,7 +634,8 @@ TypeScript
 RabbitMQ consumer
 ```
 
-This intentionally demonstrates polyglot microservices.
+Notifications retains its accepted NestJS/TypeScript boundary for event-driven delivery.
+It must meet the same contract, lifecycle and correctness requirements as Go services.
 
 It may consume events such as:
 
@@ -647,7 +648,7 @@ integration.sync_failed.v1
 
 Initial notification delivery can be simple.
 
-Do not require real paid email infrastructure for early portfolio deployment.
+Do not require real paid email infrastructure for early sandbox deployment.
 
 ## Redis
 
@@ -852,7 +853,7 @@ Never log access tokens, passwords, refresh tokens, provider secrets, or credent
 
 ## Secret abstraction
 
-Portfolio deployment may initially use environment variables.
+Sandbox deployment may initially use environment variables.
 
 Architecture should allow future secret storage through systems such as:
 
@@ -862,7 +863,7 @@ AWS Secrets Manager
 
 Do not over-engineer secret interfaces unless required by the code.
 
-Integration credentials must eventually support encryption at rest.
+Integration credentials must be encrypted at rest when provider credentials are first stored.
 
 ## Storage
 
@@ -1082,7 +1083,7 @@ Do not require every service to exist from the first commit.
 
 ## Deployment direction
 
-Initial portfolio deployment target:
+Initial sandbox deployment target:
 
 ```text
 Frontend:
@@ -1356,3 +1357,226 @@ imports, or exports only when measured scaling or domain ownership demands it.
 An ADR must name the boundary, contracts, migration, operational cost, and rollback.
 Do not create speculative service directories or shared business models. The target
 folder layout above is a destination; instantiate directories only for real work.
+
+## Operational loop: architecture impact assessment
+
+Observe → Explain → Simulate → Repair → Verify extends the accepted architecture;
+it requires no immediate runtime, service, database or infrastructure change. Existing
+RabbitMQ, structured envelopes, correlation/causation, OpenTelemetry, raw webhooks,
+reconciliation, atomic outbox/inbox, idempotency, DLQ, audit, simulator and timeline
+foundations provide the path. These are target business foundations, not a claim that
+Phase 00 has implemented them. See ADR-011 for the extension decision.
+
+Do not add Kafka, Temporal, Kubernetes, full event sourcing, a graph/vector database,
+LLM infrastructure or new cloud services solely for this vision. PostgreSQL owner-local
+records and bounded projections remain the starting point. No entire-platform event
+sourcing conversion is required.
+
+### Ownership and future contexts
+
+Operations, remediation, automation and analytics are possible bounded contexts, not
+automatic new services. Begin with modules inside existing owners. Orders retains its
+timeline and order actions; Inventory owns stock/reservation decisions; Integrations
+owns provider calls, sync/reconciliation and provider corrections. Gateway composes
+APIs and must not acquire a business database or silently become a repair orchestrator.
+
+For the first cross-owner repair, select the module that owns the initiating operation
+and its durable plan/execution state through an ADR; it coordinates owner commands
+and consumes outcomes without cross-service transactions or SQL. Each owner enforces
+its own authorization, invariants and audit. Extraction needs concrete ownership,
+scaling, team-boundary or operational evidence plus contracts, migration and rollback.
+No repair tables or generic workflow engine are created by this documentation task.
+
+### Causal operations and deterministic explanations
+
+Preserve the current event envelope. event_id identifies a fact, correlation_id groups
+a workflow and causation_id links the recorded initiating event (null for a root).
+Correlation alone is not proof of cause. Keep trace context in transport headers;
+projections may retain trace_id as a diagnostic link, independent of trace retention.
+resource_id/resource_type and store_id belong in typed payloads or versioned projection
+metadata when relevant, with organization_id enforced throughout. Add optional metadata
+compatibly; breaking contracts require versioning, never a wholesale envelope rewrite.
+
+Record the relevant decision outcome, inputs/version and stable reason code at the
+owner when a workflow first needs them. Examples: INVENTORY_INSUFFICIENT,
+PROVIDER_STATE_DIVERGED, WEBHOOK_DUPLICATE, SYNC_TIMEOUT and
+ROUTING_RULE_EXCLUDED_LOCATION. Bounded structured metadata identifies quantities,
+locations, constraints and source evidence; it must not contain secrets or arbitrary
+sensitive payloads. Do not infer decisions by matching free-form log messages.
+
+Owner-local operational projections can link webhooks, domain/integration events,
+order/inventory/reservation transitions, sync/reconciliation, audit references, retry
+and DLQ outcomes. Record occurred/observed times and applicable aggregate versions;
+arrival order and timestamps do not establish a global business order. Deduplicate
+projection updates and expose lag, missing parents, partial access and retention gaps.
+Bound graph depth, node count, time range and API work; links cannot cross tenants.
+
+Derived explanations reference actual facts, rule versions and freshness. Separate
+recorded fact, deterministic derivation and any labeled AI-assisted interpretation.
+An unknown or incomplete cause stays unknown. Re-evaluate current availability before
+an action; historical evidence is not a promise of current stock. Localize reason codes
+at the frontend using structured parameters; backend logic never depends on English.
+AI remains optional wording/diagnostic assistance, never authoritative business state
+or a bypass around repair policy, approvals and authorization.
+
+### Safe simulation versus replay
+
+A bounded dry-run evaluates one implemented operation against an explicit immutable
+input set and proposed policy/version. Reuse deterministic domain calculations where
+appropriate, with no side-effecting adapters, live publications or provider writes.
+Enforce tenant/resource access, time/data/CPU limits, cancellation and output limits.
+Record model/policy version, input provenance, coverage, assumptions and freshness so
+results are reproducible and gaps remain visible. A prediction is not a mutation.
+
+Historical simulation needs retained orders/events and sufficient inventory snapshots
+or reconstructable transitions. Define required inputs and retention before promising
+coverage. Unsupported periods or rules produce an explicit incomplete/unsupported
+result, never fabricated inventory. Simulation does not replay historical events into
+live consumers. Operational replay remains the authorized, audited, idempotent recovery
+path already specified above. Do not introduce a generalized simulation/rule engine.
+
+### Repair plans, risk and execution
+
+Prefer normal application/domain commands (request reconciliation, retry idempotent
+processing) over direct SQL edits or manually marking work successful. Exceptional
+administrative mutation requires separate explicit authorization and audit controls.
+A plan captures source evidence and authority, reason, proposed/approved changes,
+resource scope, preconditions/versions, preserved invariants, expected impact and a
+verification method. Define source-of-truth policy per flow; a provider discrepancy
+alone does not prove which quantity is correct.
+
+Conceptual risk classes are read_only, safe_retry, bounded_mutation and
+high_impact_mutation. Replay is safe_retry only if its specific idempotency and retained
+deduplication guarantees hold. Provider inventory changes may be bounded mutations;
+bulk order rerouting may be high impact. Authorization combines organization, role,
+resource ownership, risk and approval policy at planning and execution. The illustrative
+VIEWER/OPERATOR/ADMIN/OWNER mapping in product direction is not a finalized permission
+matrix. High-impact work requires explicit scope-aware confirmation; changed scope or
+stale preconditions invalidates approval and requires a new plan.
+
+Use durable operation identity and owner idempotency keys where supported. Bound retries
+and concurrency; distinguish an unknown provider outcome from a known failure. Fetch or
+reconcile before repeating an uncertain non-idempotent write. Restart recovery must
+not repeat completed effects. Expose partial completion, bounded compensation or manual
+review when atomic cross-owner repair is impossible; never imply a distributed rollback.
+
+Conceptual lifecycle: proposed → approved → executing → awaiting_verification → verified,
+with failed outcomes recording the execution or verification stage. These are future
+concepts, not a prescribed schema. Approval can be provided by explicit policy for
+allowlisted low-risk work; it does not remove audit or authorization requirements.
+
+Repair audit records must include actor (or system plus policy ID/version), organization,
+resource, reason, proposed change, approved change, execution result, verification result,
+timestamps and trace/correlation identifiers. Each owner preserves its records with
+restricted access and defined retention; the timeline references them without replacing
+audit evidence. Sanitization must preserve useful provenance without exposing secrets.
+
+### Verification and policy-driven remediation
+
+Command acceptance, a successful HTTP response or an emitted event is not verification.
+Define expected postconditions and use an authoritative provider fetch, owning-service
+read or reconciliation to test them, preserving reservations and concurrent updates.
+Evidence includes observed values, source/version and observation time. Account for
+provider propagation lag with bounded polling/backoff; stale reads, drift or exhausted
+verification remain visible as awaiting verification or a classified failure.
+
+The future Repair Framework cannot expose execution until its operation has a minimal
+verification path. The later Repair Verification stage broadens recovery and operator
+workflows. Failed verification reopens attention; it must not silently trigger a loop
+of corrections. Both success and failure feed the Operational Timeline and Operations.
+
+Self-healing follows explicit observe_only, suggest, require_approval or auto_repair
+policy. Automatic repair needs an allowlist, thresholds, resource scope, rate/attempt
+budgets, cooldowns, a disable mechanism, audit and verification. Recheck authorization
+and conditions at execution; policy actor context is mandatory. High-impact repairs
+cannot be launched directly by AI. Unknown failures default to observation/manual review.
+
+### Historical state / Commerce Time Machine
+
+Use append-only operational observations, owner audit/history records, versioned state
+transitions, snapshots and reconstructable projections incrementally. Mutable current
+state, sampled traces and expiring outbox rows are insufficient historical evidence.
+Outbox delivery cleanup must not be mistaken for an event archive. Operational history
+is not a claim that events are the domain's sole source of truth.
+
+Each supported entity view (order, SKU/product, store, location, sync job, integration)
+needs a documented coverage contract: available interval, baseline snapshot/version,
+retained transitions, provider observation times, projection freshness and gaps.
+Inventory quantities can be reconstructed only from a valid baseline plus all necessary
+changes, with documented ordering/concurrency semantics. Without them show known facts
+and unknown intervals, not an invented exact past state. Cross-service views do not
+promise a globally consistent instant without an explicit consistency mechanism.
+
+Data owners specify snapshot cadence, schema/version migration, retention/deletion,
+rebuild boundaries and access rules before enabling historical simulation or the view.
+Retention must coordinate replay deduplication, audit needs and privacy requirements;
+deleted evidence limits reconstruction. Restores and projection rebuilds require tests.
+Minimal snapshots for bounded simulation may precede the richer historical-state UI.
+
+### Environment isolation and simulator controls
+
+Environment (local/test/sandbox/staging/production), subscription plan and entitlements
+are distinct. Sandbox policy selects synthetic data, constrained providers, limits,
+retention, billing/delivery suppression and inexpensive deployment without weakening
+implemented correctness. An optional Shopify development store must be explicitly
+allowlisted. No separate Sandbox repository or business-logic fork is permitted.
+
+Commerce Simulator / System Lab is an engineering control plane for synthetic scenarios,
+not the side-effect-free simulation evaluator. Its controls need separate authorization,
+credentials and target allowlists, bounded rate/duration, and fail-closed environment
+checks. Production must reject failure injection and reset/reseed paths regardless of
+plan/entitlement settings; a hidden UI toggle is insufficient isolation. Reset is scoped
+to identifiable synthetic tenants and cannot cross into merchant data or credentials.
+Future scenarios extend from duplicates/delay/consumer failure/DLQ/inventory race to
+out-of-order webhooks, drift, provider timeout, partial sync, warehouse unavailability,
+routing conflicts and repair/verification outcomes only as those workflows exist.
+
+## Production engineering for each implemented scope
+
+Omnira is a commercial product under active development with production-grade engineering
+requirements from the first subsystem. Missing functionality is honest; deliberately
+unsafe or disposable implementation is not. One PostgreSQL instance or one VM/Compose
+can be appropriate. Quality does not require HA, Kubernetes, sharding, service mesh or
+multi-region infrastructure without a demonstrated need.
+
+- **Failure model:** identify relevant database unavailability/rollback, broker loss,
+  duplicates/reordering, provider timeout/rate limits, invalid webhooks, expired
+  credentials, partial sync, worker crashes/restarts, network loss, deployments during
+  processing, stale cache and concurrent mutation. Test important failure behavior
+  practically; document unhandled relevant concerns without pretending they are solved.
+- **Bounded work:** explicit timeouts, context cancellation, connection limits, worker
+  concurrency, queue/backpressure limits, retry budgets and backoff. Classify transient,
+  permanent, invalid-input, authorization and rate-limit failures. Retry must not repeat
+  business effects; avoid unbounded operations and blind retries.
+- **Lifecycle:** graceful startup, dependency-aware readiness distinct from liveness,
+  health reporting, bounded request draining, consumer shutdown, acknowledgement after
+  commit and database/connection cleanup when each responsibility exists.
+- **Database:** enforce owner-local foreign keys, tenant-qualified unique constraints,
+  checks and indexes. Review query plans, transactions, locks/deadlocks, connection
+  management, timeouts and backup strategy. Migrations are production artifacts: assess
+  compatibility, large-table locks, deployment order and rollback/forward-fix. Do not
+  casually rewrite migrations already applied outside local development.
+- **API:** versioned predictable contracts, validation, resource authorization,
+  pagination, request limits, timeouts, structured errors and idempotency where relevant.
+  Preserve backward compatibility; do not leak stack traces, SQL errors, credentials
+  or internal implementation details to clients.
+- **Security:** assess authentication, tenant ownership, secrets, sensitive logging,
+  CSRF/CORS, SSRF, webhook authenticity, provider tokens, dependency vulnerabilities and
+  file handling as relevant to each feature. Security Hardening reviews the whole system;
+  it never licenses knowingly insecure earlier work.
+- **Observability:** useful structured logs, metrics, trace spans, correlation and error
+  classes accompany important workflows. Bound cardinality, volume and retention;
+  sensitive data stays protected. Signals must help diagnose business behavior.
+- **Deployment:** document startup, health checks, secret injection, bounded logs and
+  rollback/forward recovery for the selected scale. Exercise backup/restore before
+  relying on durability; low-cost hosting does not exempt operational safety.
+- **Temporary code:** document its narrow scope and replacement trigger, show why it is
+  safer/cheaper than premature abstraction, and preserve correctness/security. Sandbox
+  never receives second-quality domain behavior.
+
+Production-quality implementation for the current scope is different from unrestricted
+Production readiness. Before real merchant launch, record evidence for security, data
+integrity, backup/restore, migrations, observability, incident response, provider failure
+behavior, rate limits, load characteristics, deployment/rollback, credential protection,
+privacy and compliance requirements and support procedures. Phase 24 plans and gates this
+review; a design document or a completed foundation phase cannot substitute for it.

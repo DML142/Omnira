@@ -8,7 +8,7 @@ Begin with Compose and privately reachable service infrastructure. Caddy/Gateway
 
 ## Reason
 
-Cost-constrained preview must preserve production boundaries.
+Cost-constrained sandbox must preserve production boundaries.
 
 ## Tradeoff and consequence
 

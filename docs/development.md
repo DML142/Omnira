@@ -54,7 +54,7 @@ make web
 Open `http://127.0.0.1:3000` for the minimal web page; Gateway liveness is
 `http://127.0.0.1:8080/healthz` and returns `{"status":"ok"}`. The web page does not
 claim database, broker or business-service readiness. It makes no backend requests.
-No authentication exists, so this baseline is local-only, not a public preview.
+No authentication exists, so this baseline is local-only, not a public sandbox.
 
 Gateway reads optional `OMNIRA_GATEWAY_ADDR` directly from the process environment.
 It defaults to `127.0.0.1:8080`; override with, for example,
