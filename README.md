@@ -9,9 +9,27 @@ entitlements, integrations and infrastructure determine the deployment profile.
 
 ## Status
 
-Foundation planning and repository checks are available. Application services,
-frontend runtime, infrastructure Compose configuration and deployment are not yet
-implemented. No production capability is implied by the target architecture.
+Phase 00 runtime foundation is available: a minimal Go/Gin Gateway, Next.js web
+bootstrap, local PostgreSQL/RabbitMQ/Redis Compose services, and executable checks.
+Identity, business services, provider integrations and deployment are not implemented.
+The target architecture is not a claim of production readiness.
+
+## Local startup
+
+Use the pinned toolchains and Docker prerequisites in the
+[development guide](docs/development.md), then run:
+
+```sh
+make setup
+npm --prefix apps/web ci
+make infra-up
+make gateway
+# In a second terminal:
+make web
+```
+
+Web: `http://127.0.0.1:3000`. Gateway liveness: `http://127.0.0.1:8080/healthz`.
+Stop infrastructure with `make infra-down`; data volumes are preserved.
 
 ## Documentation
 
@@ -28,8 +46,9 @@ implemented. No production capability is implied by the target architecture.
 Install Python 3, Git, Make and the Gitleaks version documented in the development
 guide. Run `make check` for public repository checks and `make hooks` to enable the
 local pre-commit protection. Stage reviewed public files before `make secrets`, which
-scans the Git index and available history. No application build command exists yet.
+scans the Git index and available history. Run `make check-runtime` for Gateway,
+web and real infrastructure validation.
 
-The intended stack is Go/Gin, PostgreSQL with pgx/sqlc/goose, RabbitMQ, Redis,
+The planned full stack is Go/Gin, PostgreSQL with pgx/sqlc/goose, RabbitMQ, Redis,
 Next.js/TypeScript and NestJS notifications. Modules and infrastructure are added
 incrementally when their responsibilities exist.

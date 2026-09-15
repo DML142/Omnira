@@ -1,5 +1,13 @@
-# Placeholder template only. Copy to .env when runtime configuration is introduced.
-# No service currently reads these proposed variables.
+# make setup generates .env with unique local passwords; never commit .env.
+# Compose reads .env. Gateway reads OMNIRA_GATEWAY_ADDR from its process environment.
+POSTGRES_PASSWORD=
+RABBITMQ_PASSWORD=
+REDIS_PASSWORD=
+POSTGRES_PORT=5432
+RABBITMQ_PORT=5672
+RABBITMQ_MANAGEMENT_PORT=15672
+REDIS_PORT=6379
+# Reserved preview configuration; not consumed until the relevant feature exists.
 OMNIRA_ENV=local
 OMNIRA_PROFILE=preview
 OMNIRA_SYNTHETIC_DATA=true

@@ -1,6 +1,9 @@
 # Intended system boundaries
 
-The services below are planned; none run in the current foundation baseline.
+The diagram describes the target business flow. Phase 00 provides the minimal web
+application, Gateway liveness and local PostgreSQL/RabbitMQ/Redis infrastructure.
+The web page makes no API calls yet; business services and the arrows below remain
+planned.
 
 ```mermaid
 flowchart LR

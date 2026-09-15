@@ -1,0 +1,55 @@
+name: omnira
+services:
+  postgres:
+    image: postgres:17.11-alpine3.24
+    environment:
+      POSTGRES_USER: omnira
+      POSTGRES_DB: omnira
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run make setup to generate local credentials}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omnira -d omnira"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+  rabbitmq:
+    image: rabbitmq:4.3.5-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: omnira
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:?Run make setup to generate local credentials}
+    hostname: rabbitmq
+    ports:
+      - "127.0.0.1:${RABBITMQ_PORT:-5672}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping && rabbitmq-diagnostics -q check_port_connectivity"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 15s
+  redis:
+    image: redis:8.8.2-alpine
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Run make setup to generate local credentials}
+    entrypoint: ["/bin/sh", "/usr/local/bin/omnira-redis.sh"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+      - ./infra/redis/start.sh:/usr/local/bin/omnira-redis.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping | grep -qx PONG"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  redis_data:
